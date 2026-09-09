@@ -64,11 +64,6 @@ CREATE TABLE IF NOT EXISTS daily_tracking (
   assigned_date     DATE
 );
 
-CREATE TABLE IF NOT EXISTS store_pins (
-  store_name TEXT PRIMARY KEY,
-  pin        TEXT NOT NULL
-);
-
 CREATE INDEX IF NOT EXISTS idx_pending_store ON pending_callbacks (store_idx);
 CREATE INDEX IF NOT EXISTS idx_tracking_date ON daily_tracking (track_date);
 CREATE INDEX IF NOT EXISTS idx_ctn_status_ban ON ctn_status (ban);

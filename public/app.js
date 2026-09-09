@@ -58,7 +58,7 @@ let currentLock = null; // {banList, filters, firstAssignedTime}
 let pollTimer = null;
 
 const loginScreen = $("#loginScreen"), appScreen = $("#appScreen"), adminScreen = $("#adminScreen");
-const loginDistrict = $("#loginDistrict"), loginStore = $("#loginStore"), loginAgent = $("#loginAgent"), loginPin = $("#loginPin");
+const loginDistrict = $("#loginDistrict"), loginStore = $("#loginStore"), loginAgent = $("#loginAgent");
 const loginErr = $("#loginErr");
 
 async function boot(){
@@ -95,22 +95,19 @@ loginDistrict.addEventListener("change", ()=>{
   loginStore.disabled = false;
 });
 
-$("#eyeToggle").addEventListener("click", ()=>{
-  loginPin.type = loginPin.type==="password" ? "text" : "password";
-});
 $("#loginBtn").addEventListener("click", doLogin);
-[loginAgent, loginPin].forEach(el=>el.addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); }));
+[loginAgent].forEach(el=>el.addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); }));
 
 async function doLogin(){
   loginErr.style.display="none";
-  const distIdx = loginDistrict.value, storeIdx = loginStore.value, agentName = loginAgent.value.trim(), pin = loginPin.value;
+  const distIdx = loginDistrict.value, storeIdx = loginStore.value, agentName = loginAgent.value.trim();
   if(distIdx===""||storeIdx===""||!agentName){
     loginErr.textContent = "District, Store, and Agent Name are all required.";
     loginErr.style.display="block"; return;
   }
   let resp;
   try{
-    resp = await api("POST", "/api/login", {storeIdx:Number(storeIdx), agentName, pin});
+    resp = await api("POST", "/api/login", {storeIdx:Number(storeIdx), agentName});
   }catch(e){
     loginErr.textContent = "Could not reach the server. Please try again."; loginErr.style.display="block"; return;
   }
@@ -125,7 +122,7 @@ async function doLogin(){
 $("#logoutBtn").addEventListener("click", ()=>{
   session = null; lsDel("session");
   clearInterval(pollTimer);
-  loginAgent.value=""; loginPin.value="";
+  loginAgent.value="";
   appScreen.style.display="none"; loginScreen.style.display="flex";
 });
 
@@ -384,7 +381,6 @@ function toast(msg){
    --------------------------------------------------------------- */
 function populateAdminSelectors(){
   const opts = META.stores.map(s=>`<option value="${s.idx}">${escapeHtml(s.name)}</option>`).join("");
-  $("#adminStoreSelect").innerHTML = opts;
   $("#adminClearStoreSelect").innerHTML = opts;
 }
 async function showAdminStats(){
@@ -407,13 +403,6 @@ $("#adminBtn2").addEventListener("click", openAdmin);
 $("#adminBack").addEventListener("click", ()=>{
   adminScreen.style.display="none";
   if(session){ appScreen.style.display="block"; } else { loginScreen.style.display="flex"; }
-});
-$("#adminSavePin").addEventListener("click", async ()=>{
-  const storeIdx = Number($("#adminStoreSelect").value);
-  const pin = $("#adminStorePin").value;
-  await api("POST", "/api/admin/pin", {storeIdx, pin});
-  $("#adminStorePin").value="";
-  toast(pin ? "PIN saved" : "PIN removed");
 });
 $("#adminClearLock").addEventListener("click", async ()=>{
   const storeIdx = Number($("#adminClearStoreSelect").value);

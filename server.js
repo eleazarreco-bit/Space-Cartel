@@ -1,7 +1,7 @@
 /* =====================================================================
    Car Keys — shared backend server
    Serves the read-only dataset from memory, keeps all mutable state
-   (locks, statuses, callbacks, PINs) in Postgres so any number of
+   (locks, statuses, callbacks) in Postgres so any number of
    people, from any device, share one consistent daily assignment
    per store.
    ===================================================================== */
@@ -91,17 +91,12 @@ app.get("/api/meta", (req,res)=>{
 
 /* ---- Login ---- */
 app.post("/api/login", asyncH(async (req,res)=>{
-  const {storeIdx, agentName, pin} = req.body || {};
+  const {storeIdx, agentName} = req.body || {};
   if(storeIdx===undefined || !agentName || !String(agentName).trim()){
     return res.json({ok:false, error:"District, Store, and Agent Name are all required."});
   }
   const storeName = D.stores[storeIdx];
   if(!storeName) return res.json({ok:false, error:"Unknown store."});
-  const { rows } = await pool.query("SELECT pin FROM store_pins WHERE store_name=$1", [storeName]);
-  const requiredPin = rows[0] ? rows[0].pin : "";
-  if(requiredPin && (pin||"") !== requiredPin){
-    return res.json({ok:false, error:"Incorrect PIN for this store."});
-  }
   res.json({ok:true, storeName, districtName: D.districts[STORE_META.district[storeIdx]]});
 }));
 
@@ -385,21 +380,6 @@ app.get("/api/admin/stats", asyncH(async (req,res)=>{
     rowCount: N_ROWS, banCount: BAN_ROWS.size, storeCount: D.stores.length,
     completedFull: Number(completedFull), completedCtns: Number(completedCtns), pending: Number(pending)
   });
-}));
-
-app.post("/api/admin/pin", asyncH(async (req,res)=>{
-  const { storeIdx, pin } = req.body || {};
-  const storeName = D.stores[storeIdx];
-  if(!storeName) return res.status(400).json({ok:false, error:"Unknown store."});
-  if(pin){
-    await pool.query(
-      `INSERT INTO store_pins (store_name, pin) VALUES ($1,$2)
-       ON CONFLICT (store_name) DO UPDATE SET pin=$2`, [storeName, pin]
-    );
-  } else {
-    await pool.query("DELETE FROM store_pins WHERE store_name=$1", [storeName]);
-  }
-  res.json({ok:true});
 }));
 
 app.post("/api/admin/clear-lock", asyncH(async (req,res)=>{

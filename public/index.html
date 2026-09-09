@@ -32,9 +32,6 @@
   .field select, .field input{
     width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:#fff;
   }
-  .pwWrap{position:relative;}
-  .pwWrap input{padding-right:36px;}
-  .eyeBtn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:var(--gray);padding:2px 6px;}
   .errText{color:var(--red);font-size:12px;margin-top:4px;display:none;}
   .btnPrimary{
     width:100%;background:var(--blue);color:#fff;border:none;padding:11px;border-radius:6px;
@@ -184,13 +181,6 @@
       <label>Agent Name</label>
       <input type="text" id="loginAgent" placeholder="Full name" autocomplete="off">
     </div>
-    <div class="field">
-      <label>Store PIN <span style="font-weight:normal;text-transform:none;color:#9aa4af;">(if your store has one set)</span></label>
-      <div class="pwWrap">
-        <input type="password" id="loginPin" placeholder="Leave blank if none set" autocomplete="off">
-        <button type="button" class="eyeBtn" id="eyeToggle">👁</button>
-      </div>
-    </div>
     <div class="errText" id="loginErr"></div>
     <button class="btnPrimary" id="loginBtn">Log In</button>
     <a href="#" class="linkSmall" id="adminLink">Admin settings</a>
@@ -277,15 +267,6 @@
     <div class="adminCard">
       <h3>Dataset</h3>
       <div id="adminStats"></div>
-    </div>
-    <div class="adminCard">
-      <h3>Store PIN</h3>
-      <p style="font-size:12.5px;color:var(--gray);margin-top:-6px;">Optionally protect a store with a PIN. Leave blank to remove protection.</p>
-      <div class="adminRow">
-        <select id="adminStoreSelect"></select>
-        <input type="password" id="adminStorePin" placeholder="New PIN (blank = none)">
-        <button id="adminSavePin">Save</button>
-      </div>
     </div>
     <div class="adminCard">
       <h3>Testing — clear a store's lock for today</h3>

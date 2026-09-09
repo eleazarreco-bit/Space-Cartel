@@ -1,6 +1,6 @@
 # Car Keys — shared server
 
-Everyone's daily BAN/CTN assignment, call status, callbacks, and PINs now live in
+Everyone's daily BAN/CTN assignment, call status, and callbacks now live in
 one shared Postgres database via a small Node/Express API. Any number of agents,
 on any device with a browser, can log in to the same hosted URL and see
 consistent, shared state — including the "same 20 BANs on re-login" lock, and
@@ -87,19 +87,19 @@ python3 build_data.py /path/to/New-CAR-Data-Export.xlsx
 ```
 
 (needs `pip install openpyxl` if you don't already have it) then restart the
-server (or redeploy). The database (assignments, statuses, callbacks, PINs) is
+server (or redeploy). The database (assignments, statuses, callbacks) is
 untouched by this — only the read-only reference data changes.
 
 ## Notes on scope and security
 
-- Store PINs (set from the Admin screen) are a light deterrent, not real
-  authentication — anyone with the store's PIN can log in as that store. Don't
-  rely on this alone if the tool needs to be genuinely access-controlled;
-  ask me to add real user accounts if that matters for your rollout.
+- Login is now just District + Store + Agent Name — there's no PIN or
+  password gate on stores. Anyone with the URL can log in as any store; ask
+  me to add real user accounts if the tool needs to be genuinely
+  access-controlled for your rollout.
 - There's no HTTPS handled by the app itself — Render/Railway/Fly all provide
   HTTPS automatically on their default domains. If you self-host on a VPS,
-  put it behind a reverse proxy (Caddy or Nginx + Let's Encrypt) so PINs and
-  agent names aren't sent in plaintext.
+  put it behind a reverse proxy (Caddy or Nginx + Let's Encrypt) so agent
+  names aren't sent in plaintext.
 - The admin screen's "Erase all local data" button is intentionally disabled
   in this version, since the data is shared and shouldn't be wiped from the
   browser. To clear data on purpose, run SQL `DELETE FROM ...` on the specific
