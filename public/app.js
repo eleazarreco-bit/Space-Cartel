@@ -137,10 +137,23 @@ async function enterApp(){
 
   await buildFilterUI(session.storeIdx);
 
-  // Peek: does a lock already exist today? We find out by calling /api/assignment
-  // with empty filters — the server returns the existing lock untouched if present,
-  // and only computes+creates a new one if none exists yet.
-  await pullAssignment(readFiltersFromUI(), /*isExplicitClick*/ false);
+  // Read-only peek: if today's list was already generated (by this agent or a
+  // teammate), show it. If not, do nothing — BANs are only generated when the
+  // agent explicitly clicks "Get My BANs".
+  let peek;
+  try{
+    peek = await api("GET", `/api/assignment/peek?storeIdx=${session.storeIdx}`);
+  }catch(e){
+    toast("Could not reach the server."); return;
+  }
+  if(peek.locked){
+    await showAssignment(peek);
+    startPolling();
+  } else {
+    $("#resultsTitle").textContent = "";
+    $("#fetchTime").textContent = "";
+    $("#resultsArea").innerHTML = '<div class="emptyState">Set your filters, then click "Get My BANs" to generate today\'s list.</div>';
+  }
 }
 
 /* ---------------------------------------------------------------
@@ -199,15 +212,20 @@ function applyFiltersToUI(f){
 /* ---------------------------------------------------------------
    Assignment (locked or fresh) + rendering
    --------------------------------------------------------------- */
-$("#fetchBtn").addEventListener("click", ()=> pullAssignment(readFiltersFromUI(), true));
+$("#fetchBtn").addEventListener("click", ()=> pullAssignment(readFiltersFromUI()));
 
-async function pullAssignment(filters, isExplicitClick){
+async function pullAssignment(filters){
   let resp;
   try{
     resp = await api("POST", "/api/assignment", { storeIdx: session.storeIdx, agentName: session.agentName, filters });
   }catch(e){
     toast("Could not reach the server."); return;
   }
+  await showAssignment(resp);
+  startPolling();
+}
+
+async function showAssignment(resp){
   currentLock = resp;
   if(resp.locked){
     applyFiltersToUI(resp.filters);
@@ -222,7 +240,6 @@ async function pullAssignment(filters, isExplicitClick){
     $("#lockBanner").innerHTML = `<div class="banner fresh">✅ Assigned at ${new Date(resp.firstAssignedTime).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})} — matched ${resp.totalMatched} BANs, showing your ${resp.banList.length}.</div>`;
   }
   await renderBanList(resp.banList, resp);
-  startPolling();
 }
 
 function startPolling(){

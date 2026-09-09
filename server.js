@@ -175,7 +175,23 @@ function computeNewBans(storeIdx, filters, fullyCompleted){
   return { sorted, totalMatched: banBestDate.size };
 }
 
-/* ---- Get or create today's assignment (atomic) ---- */
+/* ---- Peek: is today's list already locked? Read-only — never creates one. ---- */
+app.get("/api/assignment/peek", asyncH(async (req,res)=>{
+  const storeIdx = Number(req.query.storeIdx);
+  if(!D.stores[storeIdx]) return res.status(400).json({ok:false, error:"Invalid store."});
+  const date = todayStr();
+  const { rows } = await pool.query(
+    "SELECT * FROM daily_locks WHERE store_idx=$1 AND lock_date=$2", [storeIdx, date]
+  );
+  if(!rows.length) return res.json({ok:true, locked:false});
+  const row = rows[0];
+  res.json({
+    ok:true, locked:true, banList: row.ban_list, filters: row.filters,
+    firstAssignedTime: row.first_assigned, totalMatched: row.ban_list.length, followUpCount: 0
+  });
+}));
+
+/* ---- Get or create today's assignment (atomic) — only called on an explicit click ---- */
 app.post("/api/assignment", asyncH(async (req,res)=>{
   const { storeIdx, agentName, filters } = req.body || {};
   if(storeIdx===undefined || !D.stores[storeIdx]) return res.status(400).json({ok:false, error:"Invalid store."});
