@@ -21,10 +21,21 @@ const pool = new Pool({
 
 /* ---------------------------------------------------------------
    Load dataset into memory once at boot
+   Prefers the gzip-compressed file (small enough to commit to git);
+   falls back to the plain .json if that's what's present instead.
    --------------------------------------------------------------- */
-const DATA_PATH = process.env.DATA_PATH || path.join(__dirname, "data", "car_keys_data.json");
+const zlib = require("zlib");
+function resolveDataPath(){
+  if (process.env.DATA_PATH) return process.env.DATA_PATH;
+  const gz = path.join(__dirname, "data", "car_keys_data.json.gz");
+  const plain = path.join(__dirname, "data", "car_keys_data.json");
+  return fs.existsSync(gz) ? gz : plain;
+}
+const DATA_PATH = resolveDataPath();
 console.log("Loading dataset from", DATA_PATH, "...");
-const RAW = JSON.parse(fs.readFileSync(DATA_PATH, "utf-8"));
+const fileBuf = fs.readFileSync(DATA_PATH);
+const jsonText = DATA_PATH.endsWith(".gz") ? zlib.gunzipSync(fileBuf).toString("utf-8") : fileBuf.toString("utf-8");
+const RAW = JSON.parse(jsonText);
 const D = RAW.dict;
 const COLS = RAW.cols;
 const STORE_META = RAW.storeMeta;

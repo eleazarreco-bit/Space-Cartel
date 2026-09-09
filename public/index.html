@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Keys — Daily BAN/CTN Assignment</title>
+<style>
+  :root{
+    --blue:#1f4e78; --blue-dark:#153a5b; --green:#1e8a4c; --green-bg:#e7f6ec;
+    --red:#c0392b; --red-bg:#fdeceb; --amber:#b8860b; --amber-bg:#fff6e0;
+    --gray:#6b7280; --border:#dfe3e8; --bg:#f4f6f8; --card:#ffffff; --text:#1f2937;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);}
+  a{color:var(--blue);}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+
+  /* ---------- Login ---------- */
+  #loginScreen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--blue) 0%,var(--blue-dark) 100%);
+  }
+  .loginBox{
+    background:var(--card);width:380px;max-width:92vw;border-radius:10px;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);padding:32px;
+  }
+  .loginBox h1{font-size:22px;margin:0 0 4px;color:var(--blue-dark);}
+  .loginBox p.sub{margin:0 0 20px;color:var(--gray);font-size:13px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-weight:bold;color:var(--gray);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em;}
+  .field select, .field input{
+    width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:#fff;
+  }
+  .pwWrap{position:relative;}
+  .pwWrap input{padding-right:36px;}
+  .eyeBtn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:var(--gray);padding:2px 6px;}
+  .errText{color:var(--red);font-size:12px;margin-top:4px;display:none;}
+  .btnPrimary{
+    width:100%;background:var(--blue);color:#fff;border:none;padding:11px;border-radius:6px;
+    font-size:15px;font-weight:bold;margin-top:6px;
+  }
+  .btnPrimary:hover{background:var(--blue-dark);}
+  .linkSmall{display:block;text-align:center;margin-top:14px;font-size:12px;color:var(--gray);text-decoration:none;}
+
+  /* ---------- App shell ---------- */
+  #appScreen{display:none;min-height:100vh;}
+  header.topbar{
+    background:var(--blue);color:#fff;padding:10px 20px;display:flex;align-items:center;
+    justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:50;
+  }
+  .topbar .left{display:flex;flex-direction:column;}
+  .topbar .left b{font-size:15px;}
+  .topbar .left span{font-size:12px;opacity:.85;}
+  .topbar .right{display:flex;align-items:center;gap:10px;font-size:13px;}
+  .topbar button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;}
+  .topbar button:hover{background:rgba(255,255,255,.3);}
+
+  .banner{padding:9px 20px;font-size:13px;font-weight:bold;}
+  .banner.locked{background:var(--amber-bg);color:var(--amber);border-bottom:1px solid #f0dca0;}
+  .banner.fresh{background:var(--green-bg);color:var(--green);border-bottom:1px solid #bfe8cc;}
+
+  .container{max-width:1180px;margin:0 auto;padding:18px 20px 60px;}
+
+  /* ---------- Filters ---------- */
+  .filtersPanel{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:18px;}
+  .filtersPanel h3{margin:0 0 12px;font-size:14px;color:var(--blue-dark);}
+  .filtersGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
+  .filterGroup label.title{display:block;font-size:11px;font-weight:bold;color:var(--gray);text-transform:uppercase;margin-bottom:6px;letter-spacing:.03em;}
+  .radioRow{display:flex;gap:10px;font-size:13px;flex-wrap:wrap;}
+  .radioRow label{display:flex;align-items:center;gap:4px;font-weight:normal;}
+  .multiBox{max-height:130px;overflow-y:auto;border:1px solid var(--border);border-radius:5px;padding:6px 8px;font-size:12.5px;background:#fbfcfd;}
+  .multiBox label{display:flex;align-items:center;gap:6px;padding:2px 0;}
+  .multiBox input[type=search]{width:100%;margin-bottom:6px;padding:4px 6px;font-size:12px;border:1px solid var(--border);border-radius:4px;}
+  .dateRow{display:flex;gap:8px;}
+  .dateRow input{flex:1;padding:7px;border:1px solid var(--border);border-radius:5px;font-size:13px;}
+  .filtersFooter{display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;}
+  .btnFetch{background:var(--green);color:#fff;border:none;padding:10px 22px;border-radius:6px;font-size:14px;font-weight:bold;}
+  .btnFetch:disabled{background:#9db8ab;cursor:not-allowed;}
+  .btnFetch:hover:not(:disabled){background:#166b3b;}
+  .lockedNote{font-size:12px;color:var(--amber);font-weight:bold;}
+
+  /* ---------- Results ---------- */
+  .resultsHeader{display:flex;align-items:center;justify-content:space-between;margin:8px 2px 14px;flex-wrap:wrap;gap:8px;}
+  .resultsHeader h2{font-size:16px;margin:0;color:var(--blue-dark);}
+  .fetchTime{font-size:12px;color:var(--gray);}
+  .spinnerWrap{display:flex;align-items:center;gap:10px;padding:30px;justify-content:center;color:var(--gray);font-size:14px;}
+  .spinner{width:22px;height:22px;border:3px solid #d7dee4;border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .emptyState{text-align:center;padding:50px 20px;color:var(--gray);font-size:14px;}
+
+  /* ---------- BAN Card ---------- */
+  .banCard{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:visible;}
+  .banHead{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:#f9fbfc;border-radius:8px 8px 0 0;flex-wrap:wrap;gap:8px;}
+  .banHead .banInfo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .banHead .banNum{font-size:15px;font-weight:bold;color:var(--blue-dark);}
+  .banHead .custName{font-size:13px;color:var(--gray);}
+  .infoIcon{position:relative;display:inline-flex;width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;align-items:center;justify-content:center;font-size:11px;font-weight:bold;cursor:default;}
+  .tooltip{
+    display:none;position:absolute;top:24px;left:0;background:#20303f;color:#fff;padding:10px 12px;
+    border-radius:6px;font-size:12px;width:270px;z-index:60;box-shadow:0 8px 20px rgba(0,0,0,.3);line-height:1.5;
+  }
+  .infoIcon:hover .tooltip{display:block;}
+  .tooltip b{color:#9fd4ff;}
+  .followUpTag{background:var(--amber-bg);color:var(--amber);font-size:11px;font-weight:bold;padding:3px 8px;border-radius:10px;}
+  .followUpTag::before{content:"↻ ";}
+
+  table.ctnTable{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.ctnTable th{background:#f0f3f6;color:var(--gray);text-align:left;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--border);}
+  table.ctnTable td{padding:8px 10px;border-bottom:1px solid #eef1f4;vertical-align:middle;}
+  table.ctnTable tr:last-child td{border-bottom:none;}
+  .badgeStore{font-size:10.5px;font-weight:bold;padding:2px 6px;border-radius:4px;white-space:nowrap;}
+  .badgeStore.mine{background:var(--green-bg);color:var(--green);}
+  .badgeStore.other{background:#eee;color:var(--gray);}
+  .flagIcons{display:flex;gap:4px;flex-wrap:wrap;}
+  .flagIcons span{font-size:10px;padding:2px 5px;border-radius:4px;background:#eef2f6;color:var(--gray);}
+  .flagIcons span.on{background:#dff2e6;color:var(--green);}
+  .ctnActions{display:flex;gap:5px;flex-wrap:wrap;}
+  .actBtn{border:none;padding:5px 9px;border-radius:5px;font-size:11px;font-weight:bold;color:#fff;}
+  .actBtn.called{background:var(--blue);}
+  .actBtn.called.done{background:var(--green);}
+  .actBtn.completed{background:var(--green);}
+  .actBtn.completed.done{background:#0f5c2e;}
+  .actBtn.notcompleted{background:var(--red);}
+  .actBtn:disabled{opacity:.55;cursor:not-allowed;}
+  .statusPill{font-size:11px;font-weight:bold;padding:3px 8px;border-radius:10px;}
+  .statusPill.pending{background:#eef2f6;color:var(--gray);}
+  .statusPill.completed{background:var(--green-bg);color:var(--green);}
+  .statusPill.notcompleted{background:var(--red-bg);color:var(--red);}
+  .noteText{font-size:11.5px;color:var(--gray);font-style:italic;max-width:180px;}
+
+  /* ---------- Modal ---------- */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(15,23,32,.5);z-index:100;align-items:center;justify-content:center;}
+  .overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:8px;width:380px;max-width:92vw;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+  .modal h3{margin:0 0 14px;color:var(--red);font-size:16px;}
+  .modal .field{margin-bottom:14px;}
+  .modal textarea{width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;min-height:70px;resize:vertical;}
+  .modalActions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
+  .modalActions button{padding:9px 16px;border-radius:6px;border:none;font-size:13px;font-weight:bold;}
+  .modalActions .cancel{background:#eee;color:var(--text);}
+  .modalActions .save{background:var(--red);color:#fff;}
+
+  /* ---------- Toast ---------- */
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#20303f;color:#fff;
+    padding:10px 20px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .25s;z-index:200;pointer-events:none;}
+  #toast.show{opacity:1;}
+
+  /* ---------- Admin ---------- */
+  #adminScreen{display:none;min-height:100vh;background:var(--bg);}
+  .adminBox{max-width:900px;margin:0 auto;padding:24px 20px 60px;}
+  .adminBox h2{color:var(--blue-dark);}
+  .adminCard{background:#fff;border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:16px;}
+  .adminCard h3{margin-top:0;font-size:14px;color:var(--blue-dark);}
+  .adminRow{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
+  .adminRow select,.adminRow input{padding:7px;border:1px solid var(--border);border-radius:5px;font-size:13px;}
+  .adminRow button{padding:7px 14px;border-radius:5px;border:none;background:var(--blue);color:#fff;font-size:12px;font-weight:bold;}
+  table.simple{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.simple th,table.simple td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left;}
+  .stat{display:inline-block;background:#f0f3f6;border-radius:6px;padding:10px 16px;margin-right:10px;margin-bottom:10px;}
+  .stat b{display:block;font-size:20px;color:var(--blue-dark);}
+  .stat span{font-size:11px;color:var(--gray);text-transform:uppercase;}
+  .dangerBtn{background:var(--red)!important;}
+  code.small{background:#eef1f4;padding:1px 5px;border-radius:3px;font-size:11.5px;}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginScreen">
+  <div class="loginBox">
+    <h1>🔑 Car Keys</h1>
+    <p class="sub">Daily BAN / CTN assignment — sign in to get today's list</p>
+
+    <div class="field">
+      <label>District</label>
+      <select id="loginDistrict"><option value="">Select district…</option></select>
+    </div>
+    <div class="field">
+      <label>Store</label>
+      <select id="loginStore" disabled><option value="">Select district first…</option></select>
+    </div>
+    <div class="field">
+      <label>Agent Name</label>
+      <input type="text" id="loginAgent" placeholder="Full name" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Store PIN <span style="font-weight:normal;text-transform:none;color:#9aa4af;">(if your store has one set)</span></label>
+      <div class="pwWrap">
+        <input type="password" id="loginPin" placeholder="Leave blank if none set" autocomplete="off">
+        <button type="button" class="eyeBtn" id="eyeToggle">👁</button>
+      </div>
+    </div>
+    <div class="errText" id="loginErr"></div>
+    <button class="btnPrimary" id="loginBtn">Log In</button>
+    <a href="#" class="linkSmall" id="adminLink">Admin settings</a>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="appScreen">
+  <header class="topbar">
+    <div class="left">
+      <b id="hdrStore">—</b>
+      <span id="hdrMeta">—</span>
+    </div>
+    <div class="right">
+      <span id="hdrAgent"></span>
+      <button id="adminBtn2">Admin</button>
+      <button id="logoutBtn">Log Out</button>
+    </div>
+  </header>
+  <div id="lockBanner"></div>
+
+  <div class="container">
+
+    <div class="filtersPanel" id="filtersPanel">
+      <h3>Filters <span style="font-weight:normal;color:var(--gray);font-size:12px;">— narrow today's 20 BANs (optional)</span></h3>
+      <div class="filtersGrid">
+        <div class="filterGroup">
+          <label class="title">Rate Plan Code</label>
+          <div class="multiBox" id="fRatePlan"></div>
+        </div>
+        <div class="filterGroup">
+          <label class="title">RRC</label>
+          <input type="search" placeholder="Search RRC…" id="rrcSearch">
+          <div class="multiBox" id="fRRC"></div>
+        </div>
+        <div class="filterGroup">
+          <label class="title">Auto Pay</label>
+          <div class="radioRow" id="fAutoPay"></div>
+        </div>
+        <div class="filterGroup">
+          <label class="title">Protect</label>
+          <div class="radioRow" id="fProtect"></div>
+        </div>
+        <div class="filterGroup">
+          <label class="title">ILD</label>
+          <div class="radioRow" id="fILD"></div>
+        </div>
+        <div class="filterGroup">
+          <label class="title">Upg Plus</label>
+          <div class="radioRow" id="fUpgPlus"></div>
+        </div>
+        <div class="filterGroup">
+          <label class="title">CSP Opportunity</label>
+          <div class="radioRow" id="fCSP"></div>
+        </div>
+        <div class="filterGroup">
+          <label class="title">Activation Date</label>
+          <div class="dateRow">
+            <input type="date" id="fActFrom">
+            <input type="date" id="fActTo">
+          </div>
+        </div>
+      </div>
+      <div class="filtersFooter">
+        <span class="lockedNote" id="lockedNote" style="display:none;">🔒 Filters are locked — you already have today's 20 BANs</span>
+        <button class="btnFetch" id="fetchBtn">Get My 20 BANs</button>
+      </div>
+    </div>
+
+    <div class="resultsHeader">
+      <h2 id="resultsTitle">No BANs pulled yet</h2>
+      <span class="fetchTime" id="fetchTime"></span>
+    </div>
+
+    <div id="resultsArea"></div>
+
+  </div>
+</div>
+
+<!-- ================= ADMIN ================= -->
+<div id="adminScreen">
+  <div class="adminBox">
+    <h2>⚙️ Admin Settings</h2>
+    <div class="adminCard">
+      <h3>Dataset</h3>
+      <div id="adminStats"></div>
+    </div>
+    <div class="adminCard">
+      <h3>Store PIN</h3>
+      <p style="font-size:12.5px;color:var(--gray);margin-top:-6px;">Optionally protect a store with a PIN. Leave blank to remove protection.</p>
+      <div class="adminRow">
+        <select id="adminStoreSelect"></select>
+        <input type="password" id="adminStorePin" placeholder="New PIN (blank = none)">
+        <button id="adminSavePin">Save</button>
+      </div>
+    </div>
+    <div class="adminCard">
+      <h3>Testing — clear a store's lock for today</h3>
+      <p style="font-size:12.5px;color:var(--gray);margin-top:-6px;">Deletes today's daily-lock record so the next login re-computes a fresh 20.</p>
+      <div class="adminRow">
+        <select id="adminClearStoreSelect"></select>
+        <button id="adminClearLock">Clear Today's Lock</button>
+      </div>
+    </div>
+    <div class="adminCard">
+      <h3>Export</h3>
+      <div class="adminRow">
+        <button id="exportTrackingBtn">Download Daily Tracking (CSV)</button>
+        <button id="exportCompletedBtn">Download Completed CTNs (CSV)</button>
+        <button id="exportPendingBtn">Download Pending Callbacks (CSV)</button>
+      </div>
+    </div>
+    <div class="adminCard">
+      <h3>Reset</h3>
+      <p style="font-size:12.5px;color:var(--gray);margin-top:-6px;">Everything below is stored only in this browser (see note in the app). Resetting cannot be undone.</p>
+      <div class="adminRow">
+        <button class="dangerBtn" id="resetAllBtn">Erase all local tracking data</button>
+      </div>
+    </div>
+    <button id="adminBack" style="margin-top:8px;padding:9px 16px;border-radius:6px;border:1px solid var(--border);background:#fff;">← Back</button>
+  </div>
+</div>
+
+<!-- ================= NOT COMPLETED MODAL ================= -->
+<div class="overlay" id="ncOverlay">
+  <div class="modal">
+    <h3>Mark as Not Completed</h3>
+    <div class="field">
+      <label style="font-size:12px;font-weight:bold;color:var(--gray);">Call-back date (tomorrow or later)</label>
+      <input type="date" id="ncDate" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;">
+    </div>
+    <div class="field">
+      <label style="font-size:12px;font-weight:bold;color:var(--gray);">Notes (why it wasn't completed — min 3 characters)</label>
+      <textarea id="ncNotes" placeholder="e.g. Customer asked to call back after 5pm"></textarea>
+    </div>
+    <div class="errText" id="ncErr"></div>
+    <div class="modalActions">
+      <button class="cancel" id="ncCancel">Cancel</button>
+      <button class="save" id="ncSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
